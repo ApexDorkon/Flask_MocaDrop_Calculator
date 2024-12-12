@@ -1,0 +1,21 @@
+# Virtual environment folder
+venv/
+
+# Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs and debugging output
+*.log
+
+# System files (macOS and others)
+.DS_Store
+Thumbs.db
+
+# Editor/IDE configuration
+.vscode/
+.idea/
+
+# Environment variables
+.env
