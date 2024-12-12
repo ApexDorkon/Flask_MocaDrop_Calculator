@@ -24,8 +24,7 @@ def get_pool_data():
         return float(data.get("stakingPowerBurnt", 0))
     except Exception as e:
         print(f"Error fetching Mocaverse data: {e}")
-        return None  # Return None if there's an error
-
+        return None
 
 # Background function to fetch token price from CoinGecko
 def update_token_price():
@@ -36,8 +35,13 @@ def update_token_price():
             response = requests.get(COINGECKO_URL, params=params)
             response.raise_for_status()
             data = response.json()
-            current_token_price = data.get(TOKEN_NAME, {}).get("usd")
-            print(f"Updated token price: {current_token_price}")
+            price = data.get(TOKEN_NAME, {}).get("usd")
+
+            if price:  # Ensure the price is valid
+                current_token_price = price
+                print(f"Updated token price: {current_token_price}")
+            else:
+                print("Failed to fetch a valid token price from CoinGecko.")
         except Exception as e:
             print(f"Error updating token price: {e}")
         
@@ -56,8 +60,8 @@ def calculate():
         total_burnt = get_pool_data()
         print(f"Total Burnt from Mocaverse: {total_burnt}")
 
-        if current_token_price is None:
-            print("Token price not available.")
+        if current_token_price is None or current_token_price <= 0:
+            print("Invalid token price.")
             return jsonify({"error": "Token price not available. Please try again later."}), 500
 
         if not total_burnt:
