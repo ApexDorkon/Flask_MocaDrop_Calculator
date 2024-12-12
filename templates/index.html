@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIP Airdrop Calculator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>KIP Airdrop Calculator</h1>
+        <p><strong>Token Name:</strong> {{ token_name }}</p>
+        <p><strong>Total Tokens Offered:</strong> {{ total_token_offered }}</p>
+        <form id="airdropForm">
+            <label for="user_burn">How Much You Will Burn:</label>
+            <input type="number" id="user_burn" name="user_burn" required placeholder="e.g., 500">
+            <button type="submit">Calculate</button>
+        </form>
+        <div id="result" style="margin-top: 20px;">
+            <!-- Results will appear here -->
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('airdropForm');
+        const resultDiv = document.getElementById('result');
+    
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+    
+            const formData = new FormData(form);
+            const response = await fetch('/calculate', {
+                method: 'POST',
+                body: formData,
+            });
+    
+            if (response.ok) {
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <h3>Results:</h3>
+                    <p><strong>Token Name:</strong> ${data.token_name}</p>
+                    <p><strong>Token Price:</strong> $${data.token_price.toFixed(2)}</p>
+                    <p><strong>Total Burnt (Staking Power):</strong> ${data.total_burnt.toFixed(2)}</p>
+                    <p><strong>Tokens You Will Receive:</strong> ${data.tokens_received.toFixed(2)}</p>
+                    <p><strong>Your Airdrop Value:</strong> $${data.airdrop_value.toFixed(2)}</p>
+                `;
+            } else {
+                resultDiv.innerHTML = `<p>Error fetching data. Please try again later.</p>`;
+            }
+        });
+    </script>
+    
+</body>
+</html>
