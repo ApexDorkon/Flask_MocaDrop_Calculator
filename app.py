@@ -12,7 +12,8 @@ MOCA_API_URL = "https://api.staking.mocaverse.xyz/api/mocadrop/projects/kip-prot
 COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price"
 
 # Global variable to store the token price
-current_token_price = None  # Will be updated in the background thread
+current_token_price = 0.0  # Default value
+
 
 # Function to fetch staking power from Mocaverse
 def get_pool_data():
@@ -23,7 +24,8 @@ def get_pool_data():
         return float(data.get("stakingPowerBurnt", 0))
     except Exception as e:
         print(f"Error fetching Mocaverse data: {e}")
-        return None
+        return None  # Return None if there's an error
+
 
 # Background function to fetch token price from CoinGecko
 def update_token_price():
@@ -45,24 +47,28 @@ def update_token_price():
 @app.route("/")
 def index():
     return render_template("index.html", token_name=TOKEN_NAME, total_token_offered=TOTAL_TOKEN_OFFERED)
-
 @app.route("/calculate", methods=["POST"])
 def calculate():
     try:
         user_burn = float(request.form["user_burn"])
-        total_burnt = get_pool_data()
+        print(f"User Burn Input: {user_burn}")
 
-        # Use the globally stored token price
+        total_burnt = get_pool_data()
+        print(f"Total Burnt from Mocaverse: {total_burnt}")
+
         if current_token_price is None:
+            print("Token price not available.")
             return jsonify({"error": "Token price not available. Please try again later."}), 500
 
         if not total_burnt:
+            print("Failed to fetch total staking power.")
             return jsonify({"error": "Failed to fetch total staking power from Mocaverse."}), 500
 
         # Calculate results
         tokens_received = (TOTAL_TOKEN_OFFERED / total_burnt) * user_burn
         airdrop_value = tokens_received * current_token_price
 
+        print(f"Tokens Received: {tokens_received}, Airdrop Value: {airdrop_value}")
         return jsonify({
             "token_name": TOKEN_NAME,
             "token_price": current_token_price,
