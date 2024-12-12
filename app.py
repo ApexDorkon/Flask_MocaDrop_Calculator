@@ -14,7 +14,6 @@ COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price"
 # Global variable to store the token price
 current_token_price = 0.0  # Default value
 
-
 # Function to fetch staking power from Mocaverse
 def get_pool_data():
     try:
@@ -51,6 +50,7 @@ def update_token_price():
 @app.route("/")
 def index():
     return render_template("index.html", token_name=TOKEN_NAME, total_token_offered=TOTAL_TOKEN_OFFERED)
+
 @app.route("/calculate", methods=["POST"])
 def calculate():
     try:
@@ -85,6 +85,21 @@ def calculate():
 
 # Start the background thread when the app starts
 if __name__ == "__main__":
+    # Perform an initial token price update
+    try:
+        params = {"ids": TOKEN_NAME, "vs_currencies": "usd"}
+        response = requests.get(COINGECKO_URL, params=params)
+        response.raise_for_status()
+        data = response.json()
+        initial_price = data.get(TOKEN_NAME, {}).get("usd")
+        if initial_price:
+            current_token_price = initial_price
+            print(f"Initial token price fetched: {current_token_price}")
+        else:
+            print("Failed to fetch an initial token price.")
+    except Exception as e:
+        print(f"Error fetching initial token price: {e}")
+
     # Start the background thread for updating token price
     price_thread = threading.Thread(target=update_token_price, daemon=True)
     price_thread.start()
