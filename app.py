@@ -61,8 +61,8 @@ def calculate():
         print(f"Total Burnt from Mocaverse: {total_burnt}")
 
         if current_token_price is None or current_token_price <= 0:
-            print("Invalid token price.")
-            return jsonify({"error": "Token price not available. Please try again later."}), 500
+            print("Invalid token price. Waiting for a valid price.")
+            return jsonify({"error": "Token price is still being fetched. Please try again later."}), 500
 
         if not total_burnt:
             print("Failed to fetch total staking power.")
