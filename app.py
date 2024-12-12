@@ -9,7 +9,7 @@ app = Flask(__name__)
 TOKEN_NAME = "kip"  # Hardcoded token name
 TOTAL_TOKEN_OFFERED = 50000000  # Hardcoded total tokens offered
 MOCA_API_URL = "https://api.staking.mocaverse.xyz/api/mocadrop/projects/kip-protocol"
-COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price"
+COINGECKO_24H_URL = "https://www.coingecko.com/price_charts/52585/usd/24_hours.json"
 
 # Global variable to store the token price
 current_token_price = 0.0  # Default value
@@ -25,24 +25,24 @@ def get_pool_data():
         print(f"Error fetching Mocaverse data: {e}")
         return None
 
-# Background function to fetch token price from CoinGecko
+# Background function to fetch token price from Coingecko (24h stats endpoint)
 def update_token_price():
     global current_token_price
     print("Background thread for updating token price has started...")
     while True:
         try:
-            print("Fetching token price from CoinGecko...")
-            params = {"ids": TOKEN_NAME, "vs_currencies": "usd"}
-            response = requests.get(COINGECKO_URL, params=params)
+            print("Fetching token price from Coingecko 24-hour stats endpoint...")
+            response = requests.get(COINGECKO_24H_URL)
             response.raise_for_status()
             data = response.json()
-            price = data.get(TOKEN_NAME, {}).get("usd")
+            stats = data.get("stats", [])
 
-            if price:  # Ensure the price is valid
-                current_token_price = price
+            if stats:
+                # Get the final price from the last entry in stats
+                current_token_price = stats[-1][1]  # [timestamp, price]
                 print(f"Updated token price: {current_token_price}")
             else:
-                print("Failed to fetch a valid token price from CoinGecko.")
+                print("Failed to fetch a valid token price from Coingecko.")
         except Exception as e:
             print(f"Error updating token price: {e}")
         
@@ -89,13 +89,15 @@ def calculate():
 if __name__ == "__main__":
     print("Starting Flask application and fetching initial token price...")
     try:
-        params = {"ids": TOKEN_NAME, "vs_currencies": "usd"}
-        response = requests.get(COINGECKO_URL, params=params)
+        print("Fetching initial token price from Coingecko 24-hour stats endpoint...")
+        response = requests.get(COINGECKO_24H_URL)
         response.raise_for_status()
         data = response.json()
-        initial_price = data.get(TOKEN_NAME, {}).get("usd")
-        if initial_price:
-            current_token_price = initial_price
+        stats = data.get("stats", [])
+
+        if stats:
+            # Get the final price from the last entry in stats
+            current_token_price = stats[-1][1]  # [timestamp, price]
             print(f"Initial token price fetched successfully: {current_token_price}")
         else:
             print("Failed to fetch an initial token price.")
