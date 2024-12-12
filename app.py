@@ -28,8 +28,10 @@ def get_pool_data():
 # Background function to fetch token price from CoinGecko
 def update_token_price():
     global current_token_price
+    print("Background thread for updating token price has started...")
     while True:
         try:
+            print("Fetching token price from CoinGecko...")
             params = {"ids": TOKEN_NAME, "vs_currencies": "usd"}
             response = requests.get(COINGECKO_URL, params=params)
             response.raise_for_status()
@@ -85,7 +87,7 @@ def calculate():
 
 # Start the background thread when the app starts
 if __name__ == "__main__":
-    # Perform an initial token price update
+    print("Starting Flask application and fetching initial token price...")
     try:
         params = {"ids": TOKEN_NAME, "vs_currencies": "usd"}
         response = requests.get(COINGECKO_URL, params=params)
@@ -94,15 +96,17 @@ if __name__ == "__main__":
         initial_price = data.get(TOKEN_NAME, {}).get("usd")
         if initial_price:
             current_token_price = initial_price
-            print(f"Initial token price fetched: {current_token_price}")
+            print(f"Initial token price fetched successfully: {current_token_price}")
         else:
             print("Failed to fetch an initial token price.")
     except Exception as e:
         print(f"Error fetching initial token price: {e}")
 
     # Start the background thread for updating token price
+    print("Starting background thread for token price updates...")
     price_thread = threading.Thread(target=update_token_price, daemon=True)
     price_thread.start()
 
     # Run the Flask app
+    print("Starting Flask app...")
     app.run(debug=True)
